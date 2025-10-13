@@ -564,41 +564,50 @@ showSlide(slideIndex);
         }
 
         // Update alacarte cart display
-        function updateAlacarteCart() {
-            const cartElement = document.getElementById('alacarte-cart');
-            const totalElement = document.getElementById('alacarte-total');
+function updateAlacarteCart() {
+    const cartElement = document.getElementById('alacarte-cart');
+    const totalElement = document.getElementById('alacarte-total');
 
-            if (alacarteCart.length === 0) {
-                cartElement.innerHTML = '<p class="text-gray-500 text-center py-8">ยังไม่มีรายการอาหาร</p>';
-                totalElement.textContent = '0 บาท';
-                return;
-            }
+    if (alacarteCart.length === 0) {
+        cartElement.innerHTML = '<p class="text-gray-500 text-center py-8">ยังไม่มีรายการอาหาร</p>';
+        totalElement.textContent = '0 บาท';
+        return;
+    }
 
-            let total = 0;
-            let cartHTML = '';
+    let total = 0;
+    let cartHTML = '';
 
-            alacarteCart.forEach((item, index) => {
-                const itemTotal = item.price * item.quantity;
-                total += itemTotal;
-                cartHTML += `
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div class="flex-1">
-                            <div class="font-medium">${item.name}</div>
-                            <div class="text-sm text-gray-600">${item.price} บาท x ${item.quantity}</div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="changeAlacarteQuantity(${index}, -1)" class="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600">-</button>
-                            <span class="w-8 text-center">${item.quantity}</span>
-                            <button onclick="changeAlacarteQuantity(${index}, 1)" class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600">+</button>
-                        </div>
-                        <div class="ml-4 font-bold text-purple-600">${itemTotal} บาท</div>
-                    </div>
-                `;
-            });
+    alacarteCart.forEach((item, index) => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
+        cartHTML += `
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div class="flex-1">
+                    <div class="font-medium">${item.name}</div>
+                    <div class="text-sm text-gray-600">${item.price} บาท x ${item.quantity}</div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="changeAlacarteQuantity(${index}, -1)" class="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600">-</button>
+                    <span class="w-8 text-center">${item.quantity}</span>
+                    <button onclick="changeAlacarteQuantity(${index}, 1)" class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600">+</button>
+                </div>
+                <div class="ml-4 font-bold text-purple-600">${itemTotal} บาท</div>
+            </div>
+        `;
+    });
 
-            cartElement.innerHTML = cartHTML;
-            totalElement.textContent = `${total} บาท`;
-        }
+    cartElement.innerHTML = cartHTML;
+    totalElement.textContent = `${total} บาท`;
+}
+
+function changeAlacarteQuantity(index, change) {
+    alacarteCart[index].quantity += change;
+    if (alacarteCart[index].quantity <= 0) {
+        alacarteCart.splice(index, 1);
+    }
+    updateAlacarteCart();
+}
+
         async function sendToGoogleSheet(orderData) {
     const url = 'https://script.google.com/macros/s/AKfycbzarOSv05FXJO5sREXzu4iztb14FNv_fF6LQffajbCSBfpCUQyNaYmrwzH5YvbGI3le/exec'; // ใส่ URL ของ Apps Script
 
@@ -701,18 +710,20 @@ document.getElementById('alacarte-order-form').addEventListener('submit', functi
 
 
         function showSlide(index) {
-    const images = [
-        "appetizer.png",         
-	    "comfortingfood.png", 
-       "comfortingfood1.png", 
-       "pancake.png",
-        "pasta.png",         
-	"toast.png",   
-    "toast1.png",     
-	"sarad.png" 
+    const mainSlide = document.getElementById('main-slide');
+    const thumbnails = [
+        "appetizer.png",
+        "comfortingfood.png",
+        "comfortingfood1.png",
+        "pancake.png",
+        "pasta.png",
+        "toast.png",
+        "toast1.png",
+        "sarad.png"
     ];
-    document.getElementById("main-slide").src = images[index];
+    mainSlide.src = thumbnails[index];
 }
+
 
         // Change alacarte quantity
         function changeAlacarteQuantity(index, change) {
