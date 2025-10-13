@@ -5,53 +5,119 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>สั่งอาหาร</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Prompt', sans-serif; background:#f3f4f6; }
+    .card { background:white; padding:1rem; border-radius:0.5rem; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+  </style>
 </head>
-<body class="bg-gray-100 p-4 font-sans">
+<body class="p-4">
 
-  <h1 class="text-2xl font-bold mb-4">สั่งอาหาร</h1>
+  <h1 class="text-2xl font-bold mb-4">สั่งอาหารเช้า & Room Service</h1>
 
-  <form id="orderForm" class="space-y-2">
-    <input type="text" name="name" placeholder="ชื่อ" class="border p-2 w-full" required>
-    <input type="text" name="menu" placeholder="เมนู" class="border p-2 w-full" required>
-    <input type="number" name="quantity" placeholder="จำนวน" class="border p-2 w-full" required>
-    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">ส่งคำสั่ง</button>
+  <form id="orderForm" class="space-y-4 card">
+    <div>
+      <label>ประเภท:</label>
+      <select name="type" required class="border p-1 rounded w-full">
+        <option value="อาหารเช้า">อาหารเช้า</option>
+        <option value="อาราคัต">อาราคัต</option>
+      </select>
+    </div>
+
+    <div>
+      <label>ห้อง:</label>
+      <input type="text" name="room" required class="border p-1 rounded w-full">
+    </div>
+
+    <div>
+      <label>วิธีส่ง:</label>
+      <select name="delivery" required class="border p-1 rounded w-full">
+        <option value="Room">Room</option>
+        <option value="รับที่ร้าน">รับที่ร้าน</option>
+      </select>
+    </div>
+
+    <div>
+      <label>หมายเหตุ:</label>
+      <input type="text" name="note" class="border p-1 rounded w-full">
+    </div>
+
+    <h2 class="font-bold mt-2">รายการอาหาร</h2>
+    <div id="menuItems" class="space-y-2">
+      <!-- ตัวอย่างรายการอาหาร -->
+      <div class="flex gap-2 items-center">
+        <input type="text" placeholder="ชื่ออาหาร" class="border p-1 rounded name" required>
+        <input type="number" placeholder="จำนวน" class="border p-1 rounded qty" value="1" min="1" required>
+        <input type="number" placeholder="ราคา" class="border p-1 rounded price" value="0" min="0" required>
+        <button type="button" onclick="removeItem(this)" class="bg-red-500 text-white px-2 py-1 rounded">ลบ</button>
+      </div>
+    </div>
+    <button type="button" onclick="addItem()" class="bg-blue-500 text-white px-4 py-2 rounded">เพิ่มรายการ</button>
+
+    <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded mt-2">สั่งอาหาร</button>
   </form>
 
-  <div id="result" class="mt-4"></div>
-
   <script>
-    const FORM = document.getElementById("orderForm");
-    const RESULT = document.getElementById("result");
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzarOSv05FXJO5sREXzu4iztb14FNv_fF6LQffajbCSBfpCUQyNaYmrwzH5YvbGI3le/exec"; // แทนด้วย URL ของ Google Web App
+    const orderForm = document.getElementById("orderForm");
 
-    FORM.addEventListener("submit", async (e) => {
+    function addItem() {
+      const container = document.getElementById("menuItems");
+      const div = document.createElement("div");
+      div.className = "flex gap-2 items-center";
+      div.innerHTML = `
+        <input type="text" placeholder="ชื่ออาหาร" class="border p-1 rounded name" required>
+        <input type="number" placeholder="จำนวน" class="border p-1 rounded qty" value="1" min="1" required>
+        <input type="number" placeholder="ราคา" class="border p-1 rounded price" value="0" min="0" required>
+        <button type="button" onclick="removeItem(this)" class="bg-red-500 text-white px-2 py-1 rounded">ลบ</button>
+      `;
+      container.appendChild(div);
+    }
+
+    function removeItem(btn) {
+      btn.parentElement.remove();
+    }
+
+    orderForm.addEventListener("submit", async e => {
       e.preventDefault();
 
-      const formData = new FormData(FORM);
-      const data = Object.fromEntries(formData.entries());
+      const items = [];
+      document.querySelectorAll("#menuItems > div").forEach(div => {
+        const name = div.querySelector(".name").value;
+        const qty = parseInt(div.querySelector(".qty").value);
+        const price = parseFloat(div.querySelector(".price").value);
+        items.push({name, quantity: qty, price});
+      });
+
+      const data = {
+        type: orderForm.type.value,
+        room: orderForm.room.value,
+        delivery: orderForm.delivery.value,
+        note: orderForm.note.value,
+        items
+      };
 
       try {
-        const response = await fetch(SCRIPT_URL, {
+        const resp = await fetch("https://script.google.com/macros/s/AKfycbzarOSv05FXJO5sREXzu4iztb14FNv_fF6LQffajbCSBfpCUQyNaYmrwzH5YvbGI3le/exec", {
           method: "POST",
-          body: JSON.stringify(data),
-          headers: {
-            "Content-Type": "application/json"
-          }
+          mode: "cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
         });
-
-        const result = await response.json();
-
+        const result = await resp.json();
         if(result.status === "success") {
-          RESULT.textContent = "สั่งอาหารเรียบร้อย ✅";
-          FORM.reset();
+          alert("สั่งอาหารเรียบร้อย!");
+          orderForm.reset();
+          document.getElementById("menuItems").innerHTML = ""; // ลบรายการเดิม
+          addItem(); // เพิ่มรายการว่างใหม่
         } else {
-          RESULT.textContent = "เกิดข้อผิดพลาด: " + result.message;
+          alert("เกิดข้อผิดพลาด: " + result.message);
         }
-
       } catch(err) {
-        RESULT.textContent = "ไม่สามารถเชื่อมต่อ Google Sheets: " + err.message;
+        alert("ไม่สามารถส่งข้อมูลได้: " + err);
       }
     });
+
+    // เพิ่มรายการว่างเริ่มต้น
+    addItem();
   </script>
 
 </body>
