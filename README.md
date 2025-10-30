@@ -64,12 +64,7 @@
       canEnter = true;
     
 
-    okBtn.addEventListener("click", () => {
-      if (canEnter) {
-        window.location.href = nextPageUrl;
-      } else {
-        alert("กรุณากลับมาใหม่หลังเวลา 07:00 น.");
-        window.close();
+   
       }
     });
   </script>
